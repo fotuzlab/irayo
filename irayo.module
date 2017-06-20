@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * @file
+ */
+
+/**
+ * Implements hook_form_alter().
+ */
+function irayo_form_alter(&$form, &$form_state, $form_id) {
+	$node_form = strpos($form_id, '_node_form');
+	if ($node_form != FALSE) {
+		$form['irayo'] = array(
+			  '#type' => 'fieldset'
+			);
+		$form['irayo']['button'] = array(
+			  '#type' => 'button',
+			  '#value' => t('Irayo'),
+			  '#ajax' => array(
+			      'callback' => 'irayo_js',
+			      'wrapper' => 'irayo',
+			      'method' => 'append',
+			      'effect' => 'fade',
+			    ),
+			);
+		$form['irayo']['placeholder'] = array(
+			  '#type' => 'Irayo: <div id="irayo"></div>'
+			);
+	}
+}

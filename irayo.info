@@ -1,0 +1,6 @@
+name = Irayo
+description = "Integrates Irayo API."
+core = 7.x
+package = SEO
+
+scripts[] = irayo.js
