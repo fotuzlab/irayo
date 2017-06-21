@@ -14,17 +14,42 @@ function irayo_form_alter(&$form, &$form_state, $form_id) {
 			  '#type' => 'fieldset'
 			);
 		$form['irayo']['button'] = array(
-			  '#type' => 'button',
+			  '#type' => 'submit',
 			  '#value' => t('Irayo'),
+			  // '#submit' => array('irayo_submit'),
 			  '#ajax' => array(
 			      'callback' => 'irayo_js',
 			      'wrapper' => 'irayo',
-			      'method' => 'append',
+			      // 'method' => 'append',
 			      'effect' => 'fade',
+			       'progress' => array(
+			       	 'type' => 'bar',
+			       	 'message' => t('Please wait...')
+			       	 ),
 			    ),
 			);
 		$form['irayo']['placeholder'] = array(
-			  '#type' => 'Irayo: <div id="irayo"></div>'
+			  '#markup' => '<div id="irayo"></div>'
 			);
 	}
+}
+
+function irayo_js($form, $form_state) {
+	$data = array(
+			  "auth_key" => "L_Eyt6nSqvp82uXP0nIhj-GqQ0K2y_wv",
+		      "content" => $form_state['values']['body'][LANGUAGE_NONE][0]['value'],
+		      "intent" => "other"
+			);
+
+	$options = array(
+                'method' => 'POST',
+                'data' => json_encode($data),
+                // 'timeout' => 15,
+                'headers' => array('Content-Type' => 'application/json'),
+	            );
+
+  $return = drupal_http_request('https://www.irayo.com/web/optimization/index', $options);
+  $return = implode(', ', json_decode($return->data)->content_keywords);
+  return $return;
+
 }
