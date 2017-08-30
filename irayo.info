@@ -4,3 +4,4 @@ core = 7.x
 package = SEO
 
 scripts[] = irayo.js
+stylesheets[all][] = irayo.css

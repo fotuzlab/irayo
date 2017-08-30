@@ -4,6 +4,32 @@
  * @file
  */
 
+define('IRAYO_API_KEY', variable_get('irayo_api_key', NULL));
+define('IRAYO_BASE_URL', 'https://www.irayo.com/web/optimization/');
+
+/**
+ * Implements hook_menu().
+ */
+function irayo_menu() {
+  $items['admin/config/content/irayo'] = array(
+    'title' => t('Configure Irayo'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('irayo_admin_settings'),
+    'access callback' => array(TRUE), // @TODO permission.
+    'file' => 'includes/irayo.admin.inc',
+    'file path' => drupal_get_path('module', 'irayo'),
+  );
+  $items['irayo/%'] = array(
+    'title' => t('Irayo API Call'),
+    'page callback' => 'irayo_api_get',
+    'page arguments' => array(1),
+    'access callback' => array(TRUE), // @TODO permission.
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
 /**
  * Implements hook_form_alter().
  */
@@ -13,43 +39,37 @@ function irayo_form_alter(&$form, &$form_state, $form_id) {
 		$form['irayo'] = array(
 			  '#type' => 'fieldset'
 			);
-		$form['irayo']['button'] = array(
-			  '#type' => 'submit',
-			  '#value' => t('Irayo'),
-			  // '#submit' => array('irayo_submit'),
-			  '#ajax' => array(
-			      'callback' => 'irayo_js',
-			      'wrapper' => 'irayo',
-			      // 'method' => 'append',
-			      'effect' => 'fade',
-			       'progress' => array(
-			       	 'type' => 'bar',
-			       	 'message' => t('Please wait...')
-			       	 ),
-			    ),
-			);
 		$form['irayo']['placeholder'] = array(
-			  '#markup' => '<div id="irayo"></div>'
+			  '#markup' => '<div id="irayo"></div>
+							<div id="irayo_keywords"></div>'
+			);
+		$form['#attached']['js'][] = array(
+			  'type' => 'setting',
+			  'data' => array(
+			  	  'irayo' => array(
+			  	  	  'content' => $form_state['node']->body[LANGUAGE_NONE][0]['value'],
+			  	  	  'intent' => 'Other', //@TODO: Set up a fild for intent.
+			  	  	),
+			  	),
 			);
 	}
 }
 
-function irayo_js($form, $form_state) {
-	$data = array(
-			  "auth_key" => "L_Eyt6nSqvp82uXP0nIhj-GqQ0K2y_wv",
-		      "content" => $form_state['values']['body'][LANGUAGE_NONE][0]['value'],
-		      "intent" => "other"
-			);
+/**
+ * Call Irayo API.
+ */
+function irayo_api_get($endpoint) {
+	// print_r('<pre>'); print_r($_REQUEST); die();
+	$params = $_REQUEST;
+	$params['auth_key'] = IRAYO_API_KEY;
 
 	$options = array(
-                'method' => 'POST',
-                'data' => json_encode($data),
-                // 'timeout' => 15,
-                'headers' => array('Content-Type' => 'application/json'),
-	            );
+                 'method' => 'POST',
+                 'data' => json_encode($params),
+                 'headers' => array('Content-Type' => 'application/json'),
+	           );
 
-  $return = drupal_http_request('https://www.irayo.com/web/optimization/index', $options);
-  $return = implode(', ', json_decode($return->data)->content_keywords);
-  return $return;
+    $return = drupal_http_request(IRAYO_BASE_URL . $endpoint, $options);
 
+    print $return->data;
 }
